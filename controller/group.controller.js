@@ -102,6 +102,7 @@ export const getOneGroup = async (req, res) => {
         g.group_name,
         g.lesson_time,
         g.image,
+        t.id AS teacher_id,
         t.name AS teacher_name,
         s.subject_name AS subject_name,
         GROUP_CONCAT(ld.day_name) AS day_names
@@ -124,6 +125,7 @@ export const getOneGroup = async (req, res) => {
         g.lesson_time,
         g.image,
         t.name,
+        t.id,
         s.subject_name;`,
         [id]
     );
