@@ -54,9 +54,9 @@ export const getOneEmployee = async (req, res) => {
         \`subject\` s ON g.subject_id = s.id 
      INNER JOIN 
         \`teacher\` t ON g.teacher_id = t.id
-     LEFT JOIN 
+     INNER JOIN 
         \`lessons_group_days\` lgd ON g.id = lgd.group_id
-     LEFT JOIN 
+     INNER JOIN 
         \`lessons_days\` ld ON lgd.day_id = ld.id
      GROUP BY 
         g.id,
@@ -73,8 +73,13 @@ export const getOneEmployee = async (req, res) => {
       ...group,
       day_names: group.day_names ? group.day_names.split(',') : []  // Split the day names into an array or return an empty array
     }));
+    let groupInfo
+    if(!rows) {
+      return groupInfo = [];
+    }
+
     let teacherInfo = rows;
-    let groupInfo = processedData;
+    groupInfo = processedData
     return res.json([
       teacherInfo, groupInfo
     ]);
