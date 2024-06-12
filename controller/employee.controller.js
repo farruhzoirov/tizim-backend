@@ -68,8 +68,13 @@ export const getOneEmployee = async (req, res) => {
     );
 
     const [rows] = await db.execute(sql, [id]);
+
+    const processedData = data.map(group => ({
+      ...group,
+      day_names: group.day_names ? group.day_names.split(',') : []  // Split the day names into an array or return an empty array
+    }));
     let teacherInfo = rows;
-    let groupInfo = data;
+    let groupInfo = processedData;
     return res.json([
       teacherInfo, groupInfo
     ]);
