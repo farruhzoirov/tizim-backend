@@ -101,11 +101,9 @@ export const getOneGroup = async (req, res) => {
         g.room,
         g.group_name,
         g.lesson_time,
-        g.image,
         t.id AS teacher_id,
         t.name AS teacher_name,
-        s.subject_name AS subject_name,
-        GROUP_CONCAT(ld.day_name) AS day_names
+        GROUP_CONCAT(ld.id) AS day_names
      FROM 
         \`groups\` g
      INNER JOIN 
@@ -123,15 +121,14 @@ export const getOneGroup = async (req, res) => {
         g.room, 
         g.group_name,
         g.lesson_time,
-        g.image,
         t.name,
-        t.id,
-        s.subject_name;`,
+        t.id;`,
         [id]
     );
-    const processedData = data.map(group => ({
+
+    const processedData = data.map(({ day_names, ...group }) => ({
       ...group,
-      lesson_days: group.day_names ? group.day_names.split(',') : []  // Split the day names into an array or return an empty array
+      lesson_days: day_names ? day_names.split(',') : []  // Split the day names into an array or return an empty array
     }));
 
 
