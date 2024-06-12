@@ -20,33 +20,31 @@ export const getGroups = async (req, res) => {
   const sql = "SELECT * FROM `groups`";
   try {
     const [result] = await db.execute(sql);
-    return res.json({ Status: true, Result: result });
+    return res.json({Status: true, Result: result});
   } catch (err) {
     console.log(err)
-    return res.json({ Status: false, Error: "Query Error" });
+    return res.json({Status: false, Error: "Query Error"});
 
   }
 }
-
 
 
 export const getAdmins = async (req, res) => {
   const sql = "SELECT * FROM admin";
   try {
     const [result] = await db.execute(sql);
-    return res.json({ Status: true, Result: result });
+    return res.json({Status: true, Result: result});
   } catch (err) {
-    return res.json({ Status: false, Error: "Query Error" + err });
+    return res.json({Status: false, Error: "Query Error" + err});
   }
 }
-
 
 
 export const adminLogin = async (req, res) => {
   try {
     const email = req.body.email;
     const password = req.body.password;
-    const [rows] = await db.execute('SELECT * FROM admin WHERE email = ? AND password = ?', [email, password]);
+    const [rows] = await db.query('SELECT * FROM admin WHERE email = ? AND password = ?', [email, password]);
     console.log(rows)
     if (rows.length > 0) {
       const email = rows[0].email;
@@ -57,6 +55,7 @@ export const adminLogin = async (req, res) => {
       return res.json({loginStatus: false, Error: "Wrong email or password"});
     }
   } catch (err) {
+    console.log(err)
     return res.json({loginStatus: false, Error: "Query error"});
   }
 }
@@ -76,8 +75,19 @@ export const getCategories = async (req, res) => {
 export const addCategory = async (req, res) => {
   const sql = "INSERT INTO subject (`subject_name`) VALUES (?)";
   try {
+    const category = req.body.category;
+
+    if (!category) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Invalid data'
+      })
+    }
     const [result] = await db.execute(sql, [req.body.category]);
-    return res.json({Status: true, id: result.id});
+    return res.json({
+      Status: true,
+      id: result.id
+    });
   } catch (err) {
     return res.json({Status: false, Error: "Query Error"});
   }
@@ -85,29 +95,40 @@ export const addCategory = async (req, res) => {
 
 
 export const deleteCategory = async (req, res) => {
-  const id = req.params.id;
-  const sql = "DELETE FROM category WHERE id = ?";
   try {
+    const id = req.params.id;
+
+    if (!id) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Invalid data'
+      })
+    }
+
+    const sql = "DELETE FROM subject WHERE id = ?";
+
     const [result] = await db.execute(sql, [id]);
-    return res.json({ Status: true, Result: result });
+    return res.json({
+      Status: true,
+      Result: result
+    });
   } catch (err) {
-    return res.json({ Status: false, Error: "Query Error" + err });
+    return res.json({Status: false, Error: "Query Error" + err});
   }
 }
 
 
 export const addEmployee = async (req, res) => {
-  if (!req.body.name || !req.body.email || !req.body.password || !req.body.phone || !Array.isArray(req.body.categoryArr)) {
-    return res.status(401).json({
-      ok: false,
-      message: 'Invalid data in adding employee'
-    });
-  }
-
-  const {name, email, password, phone, categoryArr} = req.body;
-  let hashedPassword;
-
   try {
+    const {name, email, password, phone, categoryArr} = req.body;
+    let hashedPassword;
+    console.log(req.body)
+    if (!name || !email || !password || !phone || !Array.isArray(JSON.parse(categoryArr))) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Invalid data in adding employee'
+      });
+    }
     hashedPassword = await bcrypt.hash(password, 10);
 
     const [result] = await db.query("INSERT INTO teacher (`name`, `email`, `password`, `image`, `phone_number`) VALUES (?, ?, ?, ?, ?)", [
@@ -120,7 +141,7 @@ export const addEmployee = async (req, res) => {
 
     const teacherId = result.insertId;
 
-    const teacherSubjectsPromises = categoryArr.map(subjectId => {
+    const teacherSubjectsPromises = JSON.parse(categoryArr).map(subjectId => {
       return db.query("INSERT INTO teacher_subjects (`teacher_id`, `subject_id`) VALUES (?, ?)", [
         teacherId,
         subjectId
@@ -129,7 +150,10 @@ export const addEmployee = async (req, res) => {
 
     await Promise.all(teacherSubjectsPromises);
 
-    return res.json({Status: true, Message: "Employee added successfully"});
+    return res.json({
+      Status: true,
+      Message: "Employee added successfully"
+    });
 
   } catch (err) {
     console.error('Database query error:', err);
@@ -139,43 +163,77 @@ export const addEmployee = async (req, res) => {
 
 
 export const getEmployee = async (req, res) => {
-  const sql = "SELECT * FROM teacher";
   try {
+    const sql = "SELECT * FROM teacher";
+
     const [result] = await db.execute(sql);
-    return res.json({ Status: true, Result: result });
+    console.log(result)
+    return res.json({Status: true, Result: result});
+
   } catch (err) {
-    return res.json({ Status: false, Error: "Query Error" });
+    return res.json({Status: false, Error: err.error});
   }
 }
 
 
 export const getOneEmployee = async (req, res) => {
   const id = req.params.id;
-  const sql = "SELECT * FROM employee WHERE id = ?";
+  console.log(id)
+  const sql = "SELECT * FROM teacher WHERE id = ?";
   try {
     const [result] = await db.execute(sql, [id]);
     return res.json({Status: true, Result: result});
   } catch (err) {
-    return res.json({Status: false, Error: "Query Error"});
+    return res.json({Status: false, Error: err});
   }
 }
 
 
 export const editEmployee = async (req, res) => {
-  const id = req.params.id;
-  const sql = `UPDATE employee SET name = ?, email = ?, salary = ?, address = ?, category_id = ? WHERE id = ?`;
-  const values = [
-    req.body.name,
-    req.body.email,
-    req.body.salary,
-    req.body.address,
-    req.body.category_id
-  ];
   try {
-    const [result] = await db.execute(sql, [...values, id]);
-    return res.json({ Status: true, Result: result });
+
+    const id = req.params.id;
+    const {name, email, phone} = req.body;
+    //
+    console.log(req.body)
+    if (!name && !email && !phone) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Invalid data in adding employee'
+      });
+    }
+
+    let updates = [];
+    let values = [];
+    if (email) {
+      updates.push('email = ?');
+      values.push(email);
+    }
+    if (name) {
+      updates.push('name = ?');
+      values.push(name);
+    }
+    if (phone) {
+      updates.push('phone_number = ?');
+      values.push(phone);
+    }
+
+    const sql = `UPDATE teacher SET ${updates.join(', ')} WHERE id = ?`;
+    values.push(id)
+    const [result] =  await db.execute(sql, values);
+
+    console.log(result)
+
+    if (!result.affectedRows) {
+      res.status(400).json({message: 'Teacher not found.'});
+    }
+    res.status(200).json({Status:true, message: 'Teacher updated successfully.'});
+
   } catch (err) {
-    return res.json({ Status: false, Error: "Query Error" + err });
+    return res.status(500).json({
+      Status: false,
+      Error: "Query Error" + err.error
+    });
   }
 }
 
@@ -185,11 +243,18 @@ export const deleteEmployee = async (req, res) => {
   const sql = "DELETE FROM teacher WHERE id = ?";
   try {
     const [result] = await db.execute(sql, [id]);
-    return res.json({ Status: true, Result: result });
+    return res.json({Status: true, Result: result});
   } catch (err) {
-    return res.json({ Status: false, Error: "Query Error" + err });
+    return res.json({Status: false, Error: "Query Error" + err});
   }
 }
 
 
+export const logoutAdmin = async (req, res) => {
+  await res.clearCookie("token");
+  return res.json(
+      {
+        Status: true
+      });
+}
 

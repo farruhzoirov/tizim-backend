@@ -1,5 +1,6 @@
 import mysql from 'mysql2'
 
+
 const pool = mysql.createPool({
     host: "localhost", // You can also use "127.0.0.1"
     user: "root", // Your MySQL username
