@@ -59,29 +59,33 @@ export const getGroups = async (req, res) => {
         GROUP_CONCAT(ld.day_name) AS day_names
      FROM 
         \`groups\` g
-     INNER JOIN 
+     LEFT JOIN 
         \`teacher\` t ON g.teacher_id = t.id
-     INNER JOIN 
+     LEFT JOIN 
         \`subject\` s ON g.subject_id = s.id
-     INNER JOIN 
+     LEFT JOIN 
         \`lessons_group_days\` lgd ON g.id = lgd.group_id
-     INNER JOIN 
+     LEFT JOIN 
         \`lessons_days\` ld ON lgd.day_id = ld.id
      GROUP BY 
         g.id,
+        g.room,
         g.group_name,
         g.lesson_time,
         g.image,
         t.name,
         s.subject_name;`
     );
-
-    const formattedData = data.map(item => ({
-      ...item,
-      day_names: item.day_names.split(',')
+    const processedData = data.map(group => ({
+      ...group,
+      day_names: group.day_names ? group.day_names.split(',') : []  // Handle null `day_names`
     }));
-    console.log(formattedData)
-    return res.status(200).json({ Status: true, data: formattedData });
+    // const formattedData = data.map(item => ({
+    //   ...item,
+    //   day_names: item.day_names.split(',')
+    // }));
+    console.log(processedData)
+    return res.status(200).json({ Status: true, data: processedData });
   } catch (e) {
     console.log('Database query error:', e);
     return res.status(500).json({ Status: false, Error: "Query Error" });
@@ -130,6 +134,7 @@ export const getOneGroup = async (req, res) => {
     res.json({Status: true, data: data});
 
   } catch (err) {
+    console.log(err)
     res.status(500).json({
       ok:false,
       message: 'Server side error'
