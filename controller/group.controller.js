@@ -80,6 +80,7 @@ export const getGroups = async (req, res) => {
       ...item,
       day_names: item.day_names.split(',')
     }));
+    console.log(formattedData)
     return res.status(200).json({ Status: true, data: formattedData });
   } catch (e) {
     console.log('Database query error:', e);
@@ -113,13 +114,17 @@ export const getOneGroup = async (req, res) => {
         \`lessons_group_days\` lgd ON g.id = lgd.group_id
      INNER JOIN 
         \`lessons_days\` ld ON lgd.day_id = ld.id
+     WHERE 
+        g.id = ?
      GROUP BY 
         g.id,
+        g.room, 
         g.group_name,
         g.lesson_time,
         g.image,
         t.name,
-        s.subject_name;`
+        s.subject_name;`,
+        [id]
     );
 
     res.json({Status: true, data: data});
