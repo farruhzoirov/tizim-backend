@@ -41,17 +41,32 @@ export const getOneEmployee = async (req, res) => {
   try {
     const [data] = await db.execute(
         `SELECT 
-          g.group_name,
-          g.lesson_time,
-          g.image,
-          s.subject_name AS subject_name
-       FROM 
-          \`groups\` g
-       INNER JOIN 
-          \`subject\` s ON g.subject_id = s.id 
-       INNER JOIN 
-          \`teacher\` t ON g.teacher_id = t.id`
+        g.id,
+        g.room,
+        g.group_name,
+        g.lesson_time,
+        g.image,
+        s.subject_name AS subject_name,
+        GROUP_CONCAT(ld.day_name ORDER BY ld.day_name) AS day_names
+     FROM 
+        \`groups\` g
+     INNER JOIN 
+        \`subject\` s ON g.subject_id = s.id 
+     INNER JOIN 
+        \`teacher\` t ON g.teacher_id = t.id
+     LEFT JOIN 
+        \`lessons_group_days\` lgd ON g.id = lgd.group_id
+     LEFT JOIN 
+        \`lessons_days\` ld ON lgd.day_id = ld.id
+     GROUP BY 
+        g.id,
+        g.room,
+        g.group_name,
+        g.lesson_time,
+        g.image,
+        s.subject_name;`
     );
+
     const [rows] = await db.execute(sql, [id]);
     let teacherInfo = rows;
     let groupInfo = data;
