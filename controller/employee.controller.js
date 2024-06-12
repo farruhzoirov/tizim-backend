@@ -52,7 +52,7 @@ export const getOneEmployee = async (req, res) => {
        INNER JOIN 
           \`teacher\` t ON g.teacher_id = t.id`
     );
-    const [rows] = await pool.execute(sql, [id]);
+    const [rows] = await db.execute(sql, [id]);
     let teacherInfo = rows;
     let groupInfo = data;
     return res.json([
