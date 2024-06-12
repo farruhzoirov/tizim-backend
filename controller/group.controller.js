@@ -194,7 +194,7 @@ export const editGroup = async (req, res) => {
   try {
     const id = req.params.id;
     const { group_name, teacher_id, subject_id, lesson_time, room,  lesson_days } = req.body;
-
+    console.log(req.body)
     if (!group_name && !teacher_id && !subject_id && !lesson_time && !room  && !lesson_days) {
       return res.status(400).json({
         ok: false,
@@ -235,12 +235,12 @@ export const editGroup = async (req, res) => {
       return res.status(404).json({ message: 'Group not found.' });
     }
 
-    if (lesson_days && JSON.parse(lesson_days).length > 0) {
+    if (lesson_days && lesson_days.length > 0) {
       const deleteDaysSql = `DELETE FROM \`lessons_group_days\` WHERE group_id = ?`;
       await db.execute(deleteDaysSql, [id]);
 
       const insertDaysSql = `INSERT INTO \`lessons_group_days\` (group_id, day_id) VALUES (?, ?)`;
-      for (const day_id of JSON.parse(lesson_days)) {
+      for (const day_id of lesson_days) {
         await db.execute(insertDaysSql, [id, day_id]);
       }
     }
