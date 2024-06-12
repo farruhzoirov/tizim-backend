@@ -127,8 +127,13 @@ export const getOneGroup = async (req, res) => {
         s.subject_name;`,
         [id]
     );
+    const processedData = data.map(group => ({
+      ...group,
+      lesson_days: group.day_names ? group.day_names.split(',') : []  // Split the day names into an array or return an empty array
+    }));
 
-    res.json({Status: true, data: data});
+
+    res.json({Status: true, data: processedData});
 
   } catch (err) {
     console.log(err)
