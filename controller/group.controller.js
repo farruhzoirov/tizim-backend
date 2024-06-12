@@ -80,10 +80,7 @@ export const getGroups = async (req, res) => {
       ...group,
       day_names: group.day_names ? group.day_names.split(',') : []  // Handle null `day_names`
     }));
-    // const formattedData = data.map(item => ({
-    //   ...item,
-    //   day_names: item.day_names.split(',')
-    // }));
+
     console.log(processedData)
     return res.status(200).json({ Status: true, data: processedData });
   } catch (e) {
