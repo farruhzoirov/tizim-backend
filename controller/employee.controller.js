@@ -39,33 +39,38 @@ export const getOneEmployee = async (req, res) => {
   const id = req.params.id;
   const sql = "SELECT * FROM teacher WHERE id = ?";
   try {
+
     const [data] = await db.execute(
         `SELECT 
         g.id,
-        g.room,
         g.group_name,
         g.lesson_time,
         g.image,
+        t.name AS teacher_name,
         s.subject_name AS subject_name,
-        GROUP_CONCAT(ld.day_name ORDER BY ld.day_name) AS day_names
+        GROUP_CONCAT(ld.day_name) AS day_names
      FROM 
         \`groups\` g
      INNER JOIN 
-        \`subject\` s ON g.subject_id = s.id 
-     INNER JOIN 
         \`teacher\` t ON g.teacher_id = t.id
+     INNER JOIN 
+        \`subject\` s ON g.subject_id = s.id
      INNER JOIN 
         \`lessons_group_days\` lgd ON g.id = lgd.group_id
      INNER JOIN 
         \`lessons_days\` ld ON lgd.day_id = ld.id
+     WHERE 
+        g.teacher_id = ?
      GROUP BY 
         g.id,
-        g.room,
         g.group_name,
         g.lesson_time,
         g.image,
-        s.subject_name;`
+        t.name,
+        s.subject_name;`,
+        [id]
     );
+
 
     const [rows] = await db.execute(sql, [id]);
 
@@ -73,14 +78,19 @@ export const getOneEmployee = async (req, res) => {
       ...group,
       day_names: group.day_names ? group.day_names.split(',') : []  // Split the day names into an array or return an empty array
     }));
-    let groupInfo
+    let teacherInfo;
+    let groupInfo;
     if(!rows) {
-      return groupInfo = [];
+      return teacherInfo = [];
     }
 
-    let teacherInfo = rows;
+    if(!processedData) {
+        return groupInfo = [];
+    }
+    teacherInfo = rows;
     groupInfo = processedData
-    return res.json([
+
+    return res.status(200).json([
       teacherInfo, groupInfo
     ]);
   } catch (err) {
