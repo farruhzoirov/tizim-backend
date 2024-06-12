@@ -12,6 +12,7 @@ import teacherRoute from "./routes/employees.routes.js";
 import groupRoute from "./routes/groups.routes.js";
 import countsRoute from "./routes/counts.routes.js";
 import studentRoute from "./routes/students.routes.js";
+import lessonsTableRoutes from "./routes/lessons-table.routes.js";
 
 app.use(cors({
     origin: ["http://localhost:5173"],
@@ -47,6 +48,7 @@ app.use(teacherRoute);
 app.use(groupRoute);
 app.use(countsRoute);
 app.use(studentRoute);
+app.use(lessonsTableRoutes);
 
 app.listen(8000, () => {
     console.log("Server is running");
